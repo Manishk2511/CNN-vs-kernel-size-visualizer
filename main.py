@@ -19,6 +19,8 @@ st.write(
     "This app shows changes in training loss, validation loss, testing accuracy and convolution output with respect to kernel size"
 )
 
+st.write("Dataset Used : MNIST")
+st.write("MNIST dataset contains images of handwritten digits from 0 to 9. It has 60,000 training images and 10,0000 testing images.")
 st.write('---')
 
 
@@ -35,10 +37,10 @@ train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True)
 val_loader = DataLoader(val_data, batch_size=batch_size, shuffle=True)
 test_loader = DataLoader(test_data, batch_size=batch_size, shuffle=True)
 
-class LeNet5(nn.Module):
+class CNN(nn.Module):
     def __init__(self, kernel_size):
         self.kernel_size=kernel_size
-        super(LeNet5, self).__init__()
+        super(CNN, self).__init__()
         self.conv1 = nn.Conv2d(1, 6, kernel_size)
         self.fc1 = nn.Linear(6 * ((28-kernel_size+1)//2)*((28-kernel_size+1)//2), 120)
         self.fc2 = nn.Linear(120, 84)
@@ -55,13 +57,14 @@ class LeNet5(nn.Module):
         x = self.fc3(x) 
         return x
 
-kernel_size = st.sidebar.slider('Kernel Size', min_value=1, max_value=7, value=5, step=1)
+kernel_size = st.sidebar.slider('Kernel Size', min_value=1, max_value=10, value=5, step=1)
 
-model = LeNet5(kernel_size=kernel_size)
+
+model = CNN(kernel_size=kernel_size)
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(),lr=0.001)
 
-epochs=5
+epochs= st.sidebar.slider('Number of Epochs',min_value=1,max_value=20,value=5,step=1)
 
 train_losses = []
 val_losses = []
@@ -121,7 +124,18 @@ with torch.no_grad():
 
 
 st.write('Test Accuracy : ',Test_accuracy)
-test_img = train_data[1][0].unsqueeze(0)
+st.write('Description for the above plot : ')
+st.write('As we increase the kernel size, the training and validation loss decreases. A large kernel size helps in learning more complex features, therefore it performs well in classification and give less training and validation loss. ')
+st.write('The test accuracy also increases with the increase in kernel size because the model has learned the complex features hence they can more accurately perform classification.')
+
+st.write('---')
+
+fig,ax=plt.subplots()
+ax.set_title('Image from train set')
+ax.imshow(train_data[5][0].reshape((28,28)),cmap='gray')
+st.pyplot(fig)
+
+test_img = train_data[5][0].unsqueeze(0)
 conv1=F.relu(model.conv1(test_img))
 c1 = conv1 - conv1.min()
 c1 = c1 / conv1.max()
@@ -142,3 +156,5 @@ for i in range(6):
 
 
 st.pyplot(fig)
+st.write('Description for the above plot : ')
+st.write('The output from the convolution layers suggests that the larger size kernels are able to extract more complex features from the image compared to smaller kernel size. As we can see from the above plot, more complex edges and curves present in the image is captured by the larger size kernel compared to the smaller size kernels. ')
